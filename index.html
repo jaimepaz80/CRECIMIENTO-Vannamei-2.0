@@ -17,6 +17,7 @@
             --text-color: #333;
             --header-color: #212529;
             --border-color: #dee2e6;
+            --whatsapp-color: #25D366;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
@@ -45,7 +46,6 @@
 
         .header {
             text-align: center;
-            border-bottom: 1px solid var(--border-color);
             padding-bottom: 20px;
             margin-bottom: 10px;
         }
@@ -60,6 +60,47 @@
             margin: 5px 0 0;
             color: #6c757d;
             font-size: 1.1em;
+        }
+        
+        .author-info {
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .author-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--header-color);
+            margin: 0;
+        }
+
+        .whatsapp-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--whatsapp-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .whatsapp-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4);
+        }
+        
+        .whatsapp-link svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
         }
 
         .form-container {
@@ -122,7 +163,7 @@
             width: 16px;
             height: 16px;
             animation: spin 1s linear infinite;
-            display: none; /* Oculto por defecto */
+            display: none;
         }
 
         @keyframes spin {
@@ -144,7 +185,7 @@
         }
 
         #table-container {
-            max-height: 520px; /* Altura del gráfico */
+            max-height: 520px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -201,6 +242,13 @@
             <div class="header">
                 <h1>Calculadora de Crecimiento para *L. vannamei*</h1>
                 <p>Basado en el modelo de Coeficiente Térmico de Crecimiento (TGC) Adaptado</p>
+                <div class="author-info">
+                    <p class="author-name">Jaime Ulises Paz Lopez</p>
+                    <a href="https://wa.me/584121043327" class="whatsapp-link" target="_blank">
+                        <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.61 15.31 3.44 16.74L2.01 21.99L7.47 20.58C8.82 21.33 10.39 21.76 12.04 21.76C17.5 21.76 21.95 17.31 21.95 11.85C21.95 6.39 17.5 2 12.04 2M12.04 3.67C16.56 3.67 20.28 7.39 20.28 11.91C20.28 16.43 16.56 20.09 12.04 20.09C10.53 20.09 9.1 19.69 7.89 19L7.22 18.61L3.62 19.74L4.77 16.24L4.36 15.53C3.63 14.21 3.2 12.69 3.2 11.85C3.8 7.39 7.46 3.67 12.04 3.67M9.23 7.52C8.96 7.52 8.71 7.52 8.5 7.82C8.28 8.12 7.72 8.72 7.72 9.81C7.72 10.9 8.53 11.96 8.68 12.15C8.83 12.34 10.16 14.54 12.28 15.4C14.03 16.14 14.41 15.98 14.73 15.93C15.34 15.83 16.24 15.26 16.46 14.71C16.68 14.16 16.68 13.73 16.6 13.61C16.52 13.48 16.32 13.42 16.02 13.28C15.72 13.13 14.51 12.55 14.28 12.46C14.05 12.37 13.89 12.31 13.74 12.55C13.58 12.79 13.11 13.28 12.96 13.48C12.82 13.67 12.67 13.7 12.37 13.56C12.07 13.42 11.08 13.06 9.88 12.03C9.01 11.27 8.41 10.36 8.27 10.06C8.12 9.76 8.24 9.61 8.38 9.47C8.5 9.36 8.65 9.18 8.79 9.02C8.93 8.86 8.98 8.74 9.13 8.47C9.27 8.19 9.21 8.04 9.15 7.9C9.09 7.76 8.96 7.52 9.23 7.52Z"></path></svg>
+                        <span>Contactar por WhatsApp</span>
+                    </a>
+                </div>
             </div>
             <div class="form-container">
                 <div class="input-group">
@@ -245,8 +293,7 @@
             btn.disabled = true;
             btnText.textContent = 'Calculando...';
             loader.style.display = 'block';
-
-            // Usamos setTimeout para permitir que la UI se actualice antes del cálculo intensivo
+            
             setTimeout(() => {
                 calculateGrowth();
                 btn.disabled = false;
@@ -265,18 +312,12 @@
                 return;
             }
 
-            const data = {
-                labels: [],
-                weights: []
-            };
-
+            const data = { labels: [], weights: [] };
             let currentWeight = initialWeight;
-            let inflectionDay = null;
-            let inflectionWeight = null;
+            let inflectionDay = null, inflectionWeight = null;
             
-            // Parámetros del modelo de Powell et al. (2019)
-            const model1 = { exponent: 0.416, tgc: 0.151 }; // Stanza 1: < 7.5g
-            const model2 = { exponent: 0.952, tgc: 0.807 }; // Stanza 2: >= 7.5g
+            const model1 = { exponent: 0.416, tgc: 0.151 };
+            const model2 = { exponent: 0.952, tgc: 0.807 };
             const breakPoint = 7.5;
 
             let tableHTML = `<thead><tr><th>Día</th><th>Peso (g)</th></tr></thead><tbody>`;
@@ -311,28 +352,20 @@
                 }
             }
             
-            renderChart(data, breakPoint, inflectionDay, inflectionWeight);
+            renderChart(data, breakPoint);
         }
 
-        function renderChart(data, breakPoint, inflectionDay, inflectionWeight) {
+        function renderChart(data, breakPoint) {
             const ctx = document.getElementById('growthChart');
-            
-            if (myChart) {
-                myChart.destroy();
-            }
+            if (myChart) myChart.destroy();
             
             const annotations = {
                 line1: {
-                    type: 'line',
-                    yMin: breakPoint,
-                    yMax: breakPoint,
-                    borderColor: '#dc3545',
-                    borderWidth: 2,
-                    borderDash: [6, 6],
+                    type: 'line', yMin: breakPoint, yMax: breakPoint,
+                    borderColor: '#dc3545', borderWidth: 2, borderDash: [6, 6],
                     label: {
                         content: `Punto de Inflexión: ${breakPoint.toFixed(1)} g`,
-                        enabled: true,
-                        position: 'end',
+                        enabled: true, position: 'end',
                         backgroundColor: 'rgba(220, 53, 69, 0.8)',
                         font: { weight: 'bold' }
                     }
@@ -348,58 +381,30 @@
                         data: data.weights,
                         borderColor: 'rgba(13, 71, 161, 0.8)',
                         backgroundColor: 'rgba(25, 118, 210, 0.2)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 5
+                        fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 5
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: false
-                        },
-                        annotation: {
-                            annotations: annotations
-                        }
+                        legend: { position: 'top' },
+                        title: { display: false },
+                        annotation: { annotations: annotations }
                     },
                     scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Días de Cultivo',
-                                font: { size: 14 }
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Peso (gramos)',
-                                font: { size: 14 }
-                            },
-                            beginAtZero: true
-                        }
+                        x: { title: { display: true, text: 'Días de Cultivo', font: { size: 14 }}},
+                        y: { title: { display: true, text: 'Peso (gramos)', font: { size: 14 }}, beginAtZero: true }
                     },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
-                    },
+                    interaction: { intersect: false, mode: 'index' },
                 }
             });
         }
         
-        // Cargar datos iniciales al abrir la página
         window.onload = () => {
             document.getElementById('table-card').style.display = 'none';
             document.getElementById('chart-card').style.display = 'none';
         };
 
-        // Modificación para mostrar las tarjetas después del primer cálculo
         const originalCalculateGrowth = calculateGrowth;
         calculateGrowth = function() {
             document.getElementById('table-card').style.display = 'block';
