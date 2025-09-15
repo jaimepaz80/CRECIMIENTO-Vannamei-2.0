@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyección Profesional de Crecimiento | L. vannamei</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #0d47a1;
+            --secondary-color: #1976d2;
+            --light-bg: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --header-color: #212529;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 25px 30px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2.2em;
+        }
+        
+        .header p {
+            margin: 5px 0 0;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .form-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--secondary-color);
+        }
+
+        input[type="number"] {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.2);
+        }
+
+        button {
+            padding: 12px 30px;
+            background-image: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: none; /* Oculto por defecto */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .results-header {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        #table-container {
+            max-height: 520px; /* Altura del gráfico */
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--light-bg);
+            position: sticky;
+            top: 0;
+            color: var(--header-color);
+            font-weight: 600;
+        }
+
+        .inflection-point-row {
+            background-color: #fff3cd;
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        #chart-container {
+            min-height: 500px;
+        }
+
+        /* Diseño Responsivo */
+        @media (max-width: 992px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+            .card { padding: 20px; }
+            .form-container { flex-direction: column; align-items: stretch; }
+            .header h1 { font-size: 1.8em; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Calculadora de Crecimiento para *L. vannamei*</h1>
+                <p>Basado en el modelo de Coeficiente Térmico de Crecimiento (TGC) Adaptado</p>
+            </div>
+            <div class="form-container">
+                <div class="input-group">
+                    <label for="initialWeight">Peso de Siembra (gramos):</label>
+                    <input type="number" id="initialWeight" value="0.1" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label for="avgTemp">Temperatura Promedio (°C):</label>
+                    <input type="number" id="avgTemp" value="29.5" step="0.1">
+                </div>
+                <button id="calculateBtn" onclick="runCalculation()">
+                    <span id="btn-text">Calcular Proyección</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div class="card" id="table-card">
+                 <h2 class="results-header">Tabla de Datos</h2>
+                 <div id="table-container">
+                    <table id="resultsTable"></table>
+                </div>
+            </div>
+            <div class="card" id="chart-card">
+                <h2 class="results-header">Gráfico de Crecimiento</h2>
+                <div id="chart-container">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart;
+
+        function runCalculation() {
+            const btn = document.getElementById('calculateBtn');
+            const btnText = document.getElementById('btn-text');
+            const loader = document.getElementById('loader');
+
+            btn.disabled = true;
+            btnText.textContent = 'Calculando...';
+            loader.style.display = 'block';
+
+            // Usamos setTimeout para permitir que la UI se actualice antes del cálculo intensivo
+            setTimeout(() => {
+                calculateGrowth();
+                btn.disabled = false;
+                btnText.textContent = 'Calcular Proyección';
+                loader.style.display = 'none';
+            }, 50);
+        }
+
+        function calculateGrowth() {
+            const initialWeight = parseFloat(document.getElementById('initialWeight').value);
+            const avgTemp = parseFloat(document.getElementById('avgTemp').value);
+            const days = 120;
+
+            if (isNaN(initialWeight) || isNaN(avgTemp) || initialWeight <= 0 || avgTemp <= 0) {
+                alert("Por favor, introduce valores numéricos válidos y positivos.");
+                return;
+            }
+
+            const data = {
+                labels: [],
+                weights: []
+            };
+
+            let currentWeight = initialWeight;
+            let inflectionDay = null;
+            let inflectionWeight = null;
+            
+            // Parámetros del modelo de Powell et al. (2019)
+            const model1 = { exponent: 0.416, tgc: 0.151 }; // Stanza 1: < 7.5g
+            const model2 = { exponent: 0.952, tgc: 0.807 }; // Stanza 2: >= 7.5g
+            const breakPoint = 7.5;
+
+            let tableHTML = `<thead><tr><th>Día</th><th>Peso (g)</th></tr></thead><tbody>`;
+
+            for (let day = 1; day <= days; day++) {
+                data.labels.push(day);
+                let model = (currentWeight < breakPoint) ? model1 : model2;
+                
+                let base = Math.pow(currentWeight, model.exponent);
+                let growthFactor = (model.tgc / 100) * avgTemp;
+                currentWeight = Math.pow(base + growthFactor, 1 / model.exponent);
+                
+                data.weights.push(currentWeight);
+
+                let rowClass = '';
+                if (currentWeight >= breakPoint && inflectionDay === null) {
+                    inflectionDay = day;
+                    inflectionWeight = currentWeight;
+                    rowClass = 'inflection-point-row';
+                }
+
+                tableHTML += `<tr class="${rowClass}"><td>${day}</td><td>${currentWeight.toFixed(2)}</td></tr>`;
+            }
+            tableHTML += `</tbody>`;
+            document.getElementById('resultsTable').innerHTML = tableHTML;
+            
+            if (inflectionDay) {
+                const tableContainer = document.getElementById('table-container');
+                const inflectionRow = tableContainer.querySelector('.inflection-point-row');
+                if (inflectionRow) {
+                    inflectionRow.scrollIntoView({ behavior: 'auto', block: 'center' });
+                }
+            }
+            
+            renderChart(data, breakPoint, inflectionDay, inflectionWeight);
+        }
+
+        function renderChart(data, breakPoint, inflectionDay, inflectionWeight) {
+            const ctx = document.getElementById('growthChart');
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+            
+            const annotations = {
+                line1: {
+                    type: 'line',
+                    yMin: breakPoint,
+                    yMax: breakPoint,
+                    borderColor: '#dc3545',
+                    borderWidth: 2,
+                    borderDash: [6, 6],
+                    label: {
+                        content: `Punto de Inflexión: ${breakPoint.toFixed(1)} g`,
+                        enabled: true,
+                        position: 'end',
+                        backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                        font: { weight: 'bold' }
+                    }
+                }
+            };
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Peso Proyectado (g)',
+                        data: data.weights,
+                        borderColor: 'rgba(13, 71, 161, 0.8)',
+                        backgroundColor: 'rgba(25, 118, 210, 0.2)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false
+                        },
+                        annotation: {
+                            annotations: annotations
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Días de Cultivo',
+                                font: { size: 14 }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Peso (gramos)',
+                                font: { size: 14 }
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                }
+            });
+        }
+        
+        // Cargar datos iniciales al abrir la página
+        window.onload = () => {
+            document.getElementById('table-card').style.display = 'none';
+            document.getElementById('chart-card').style.display = 'none';
+        };
+
+        // Modificación para mostrar las tarjetas después del primer cálculo
+        const originalCalculateGrowth = calculateGrowth;
+        calculateGrowth = function() {
+            document.getElementById('table-card').style.display = 'block';
+            document.getElementById('chart-card').style.display = 'block';
+            originalCalculateGrowth();
+        };
+
+    </script>
+
+</body>
+</html>
